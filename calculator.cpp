@@ -3,14 +3,15 @@
 #include "Node.h"
 #include "Stack.h"
 #include <iostream>
+#include <cctype>
 
 using namespace std;
 
 
 // Function to check if a character is an operator
-bool checkIfOperator(char token) 
+bool checkIfOperator(char token)
 {
-    if (token == '+' || token == '-' || token == '*' || token == '/')
+    if (token == '+' || token == '-' || token == '*' || token == '/' || token == '(' || token == ')' || token == 'N' || token == 'F')
     {
         return true;
     }
@@ -20,8 +21,9 @@ bool checkIfOperator(char token)
     }
 }
 
+
 // Function to check if a character is a digit
-bool checkIfDigit(char token) 
+bool checkIfDigit(char token)
 {
     if (token >= '0' && token <= '9')
     {
@@ -34,138 +36,324 @@ bool checkIfDigit(char token)
 }
 
 
+void addNumbersToStack(char token, Stack<char> &output, Stack<int> &numbers)
+{
+    output.addOnBottom(token); // Push digit onto the output stack
 
-void convertingToRPN(Stack &output, Stack &operators) 
-{  
+    char nextChar;
+    while (cin.peek() && checkIfDigit(cin.peek())) {
+        cin.get(nextChar);
+        output.addOnBottom(nextChar); // Push consecutive digits onto the output stack
+    }
+    output.addOnBottom(' '); // Push space after each number
+}
+
+
+void addMultiplicationAndDivisionSign(char token, Stack<char>& output, Stack<char>& temp)
+{
+    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == 'N' || temp.peek() == 'F'))
+    {
+        if (temp.peek() == 'F')
+        {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        output.addOnBottom(temp.peek());
+        temp.pop();
+    }
+    temp.push(token);
+}
+
+
+void addAdditionAndSubtractionSign(char token, Stack<char>& output, Stack<char>& temp)
+{
+    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == '+' || temp.peek() == '-' || temp.peek() == 'N' || temp.peek() == 'F'))
+    {
+        if (temp.peek() == 'F')
+        {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        output.addOnBottom(temp.peek());
+        temp.pop();
+    }
+    temp.push(token);
+}
+
+void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
+{
+    while (!temp.isEmpty() && temp.peek() != '(')
+    {
+        if (temp.peek() == 'F')
+        {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        output.addOnBottom(temp.peek());
+        temp.pop();
+    }
+    if (temp.peek() == '(')
+    {
+        temp.pop(); // Pop '('
+        temp.push(')');
+
+    }
+    temp.pop();
+
+}
+
+
+void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
+{
+    if (temp.isEmpty() || token == '(' || token == 'N')
+    {
+        temp.push(token);
+    }
+    else
+    {
+        /*if (token == 'N' || token == 'F')
+        {
+            while (!temp.isEmpty()) {
+                output.addOnBottom(temp.peek());
+                temp.pop();
+            }
+            temp.push(token);
+        }*/
+        if (token == 'N')
+        {
+            while (!temp.isEmpty() && temp.peek() == 'F')
+            {
+                if (temp.peek() == 'F')
+                {
+                    output.addOnBottom('I');
+                    output.addOnBottom(temp.peek());
+                    temp.pop();
+                }
+                output.addOnBottom(temp.peek());
+                temp.pop();
+            }
+            temp.push(token);
+        }
+        else if (token == '*' || token == '/')
+        {
+            addMultiplicationAndDivisionSign(token, output, temp);           
+        }
+        else if (token == '+' || token == '-')
+        {
+            addAdditionAndSubtractionSign(token, output, temp);
+        }
+        else if (token == ')')
+        {
+            takeElementsFromParentheses(output, temp);
+        }
+    }
+
+}
+
+
+void convertingToRPN(Stack<char>& output, Stack<char>& operators, Stack<int>& numbers, Stack<char>& temp)
+{
     char token;
-    //cin.get(token);
     while (cin.get(token) && token != '.')
     {
         if (checkIfDigit(token))
         {
-            int number = token - '0'; // Convert char to int
-            char nextToken;
-            while (cin.peek() && checkIfDigit(cin.peek())) 
-            {
-                cin.get(nextToken);
-                number = number * 10 + (nextToken - '0'); // Build multi-digit number
-            }
-            output.push(number); // Push integer value onto the output stack
-            output.push(' '); // Push space after each number
+            addNumbersToStack(token, output, numbers);
         }
-        else if (checkIfOperator(token)) 
+        else if (checkIfOperator(token))
         {
-            while (!operators.isEmpty() && operators.peek() != '(' && ((token != '*' && token != '/') || (operators.peek() == '+' || operators.peek() == '-'))) 
-            {
-                output.push(operators.peek()); // Pop operator from the operator stack and push onto the output stack
-                operators.pop();
-            }
-            operators.push(token); // Push current operator onto the operator stack
-        }
-        else if (token == '(') 
-        {
-            operators.push(token); // Push '(' onto the operator stack
-        }
-        else if (token == ')')
-        {
-            while (!operators.isEmpty() && operators.peek() != '(') 
-            {
-                output.push(operators.peek()); // Pop operators from the operator stack and push onto the output stack until '(' is encountered
-                operators.pop();
-            }
-            if (!operators.isEmpty() && operators.peek() == '(') 
-            {
-                operators.pop(); // Pop '('
-            }
+            addOperationsToStack(token, output, temp);
         }
     }
 
     // Pop remaining operators from the operator stack and push onto the output stack
-    while (!operators.isEmpty()) 
+    while (!temp.isEmpty())
     {
-        output.push(operators.peek());
-        operators.pop();
+        output.addOnBottom(temp.peek());
+        temp.pop();
     }
 
-    // Print the contents of the output stack
-    output.reverse();
+    output.printForward();
     cout << endl;
 }
 
+void printSteps(char symbol, Stack<int>& numbers)
+{
+    cout << symbol <<' ';
+    numbers.printNumbers();
+    cout << endl;
+}
+
+void negative(Stack<int>& numbers, char symbol)
+{
+    printSteps(symbol, numbers);
+    int firstNumber = numbers.peek();
+    numbers.pop();
+
+    int result = - firstNumber;
+    numbers.push(result);
+
+}
+
+bool division(Stack<int>& numbers, char symbol)
+{
+    printSteps(symbol, numbers);
+
+    int secondNumber = numbers.peek();
+    numbers.pop();
+    if (secondNumber == 0)
+    {
+        cout << "ERROR";
+        return false;
+    }
+    int fisrtNumber = numbers.peek();
+    numbers.pop();
+
+    int result = fisrtNumber / secondNumber;
+    numbers.push(result);
+    return true;
+}
+
+void multiplication(Stack<int>& numbers, char symbol)
+{
+    printSteps(symbol, numbers);
+
+    int secondNumber = numbers.peek();
+    numbers.pop();
+    int fisrtNumber = numbers.peek();
+    numbers.pop();
+
+    int result = fisrtNumber * secondNumber;
+    numbers.push(result);
+}
+
+void substraction(Stack<int>& numbers, char symbol)
+{
+    printSteps(symbol, numbers);
+
+    int secondNumber = numbers.peek();
+    numbers.pop();
+    int fisrtNumber = numbers.peek();
+    numbers.pop();
+
+    int result = fisrtNumber - secondNumber;
+    numbers.push(result);
+}
+
+void addition(Stack<int>& numbers, char symbol)
+{
+    printSteps(symbol, numbers);
+
+    int secondNumber = numbers.peek();
+    numbers.pop();
+    int fisrtNumber = numbers.peek();
+    numbers.pop();
+
+    int result = fisrtNumber + secondNumber;
+    numbers.push(result);
+}
+
+bool calculations(char symbol, Stack<int>& numbers)
+{
+    switch (symbol)
+    {
+    case '+':
+        addition(numbers, '+');
+        break;
+    case '-':
+        substraction(numbers, '-');
+        break;
+    case '*':
+        multiplication(numbers, '*');
+        break;
+    case '/':
+        if (!division(numbers, '/'))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+        break;
+    case 'N':
+        negative(numbers, 'N');
+    }
+    return true;
+}
 
 
+void check(Node<char>* node, Stack<char>& output, Stack<int> numbers)
+{
+    if (node == NULL)
+    {
+        numbers.printNumbers();
+        numbers.pop();
+        return;
+    }
+    if (checkIfDigit(node->data))
+    {
+        int number = node->data - '0'; // Convert char to int
+        numbers.push(number);
+        while (checkIfDigit(node->next->data))
+        {
+            int number1 = node->next->data - '0';
+            number = number * 10 + number1;
+            numbers.pop();
+            numbers.push(number);
+            node = node->next;           
+        }        
+    }
+    else
+    {
+        if (!calculations(node->data, numbers))
+        {
+            return;
+        }
+    }
+    check(node->next, output, numbers);
+}
 
-
+void lookForOperator(Stack<char>& output, Stack<int> numbers)
+{
+    Node<char>* topOutput;
+    topOutput = output.getTopNode();
+    if (topOutput== NULL)
+    {
+        numbers.printNumbers();
+        return;
+    }
+    check(topOutput, output, numbers);
+}
 
 
 int main()
 {
-    Stack operators;
-    Stack output;
+    Stack<char> operators;
+    Stack<char> output;
+    Stack<int> numbers;
+    Stack<char> temp;
     int amountOfEquations;
 
     cin >> amountOfEquations;
     for (int i = 0; i < amountOfEquations; i++)
     {
-        convertingToRPN(output, operators);
+        
+        convertingToRPN(output, operators, numbers, temp);
+        lookForOperator(output, numbers);
+        //cout<<output.getLastNodeData();
+        while (!output.isEmpty())
+        {
+            output.pop();
+        }
         cout << endl;
+        
     }
     return 0;
 
-
-
-
-
-
-
-
-
-    /*for (int i = 0; i < amountOfEquations; i++)
-    {
-        while (input != '.')
-        {
-            cin >> noskipws >> input;
-            //stack.push(input);
-            if (input != '+' && input != '-' && input != '*' && input != '/' && input != '.' && input != ' ')
-            {
-                output.push(input);
-            }
-            else if (input == ' ')
-            {
-                output.push('<');
-            }
-            else
-            {
-                stack.push(input);
-                /*if (input == '+' || input == '-')
-                {
-                    if (stack.peek() == '*' || stack.peek() == '/')
-                    {
-                        output.push(stack.peek());
-                        stack.pop();
-                        stack.push(input);
-                    }
-                    else
-                    {
-                        stack.push(input);
-                    }
-                }*/
-                /*else
-                {
-                    stack.push(input);
-                }
-               
-            }      
-        }
-      
-    }
-    output.reverse();
-    cout << endl;
-    //stack.takeAllElementsFromStack(&output);
-    //output.reverse();
-    output.print();
-    cout << endl;
-    stack.print();*/
     
 }
 

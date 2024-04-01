@@ -7,34 +7,99 @@
 #include "Node.h"
 #include <iostream>
 
-//template<typename T>
+using namespace std;
+
+template<typename T>
 class Stack
 {
-    Node* top;
+    Node<T>* top;
 public:
     Stack()
     {
         top = NULL;
     }
-    void push(char data) //add node on top of the stack
+    void push(T data) //add node on top of the stack
     {
-        Node* temp = new Node(data);
+        Node<T>* temp = new Node<T>(data);
 
         if (!temp)
         {
-            cout << "Stack is full";
+            cout << "memory allocation failed";
             return;
         }
 
         temp->data = data;
         temp->next = top;
+        if (top != NULL)
+        {
+            top->prev = temp;
+        }
         top = temp;
     }
-    bool isEmpty()
+
+    void addOnBottom(T data) //add node on bottom of the stack
+    {
+        Node<T>* temp = new Node<T>(data);
+
+        if (!temp)
+        {
+            cout << "memeory alloaction failed";
+        }
+
+        //if stack is empty
+        if (!top)
+        {
+            top = temp;
+            return;
+        }
+
+        //initialize current pointer to the adress stored in the top one
+        //goes before the top
+        Node<T>* current = top;
+
+        //look for last node, moving current to the next pointer 
+        while (current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = temp;
+        temp->prev = current;
+
+    }
+
+    void addSomewhereInside(Node<T>* existingNode, char data)
+    {
+        Node<T>* newNode = new Node<T>(data);
+        if (existingNode == nullptr || newNode == nullptr) 
+        {
+            cout << "Cannot push a null node onto the stack!" << endl;
+            return;
+        }
+
+        if (top == nullptr) {
+            cout << "Stack is empty, cannot insert after a node!" << endl;
+            return;
+        }
+
+        newNode->next = existingNode->next;
+        if (existingNode->next != nullptr) {
+            existingNode->next->prev = newNode;
+        }
+        existingNode->next = newNode;
+        newNode->prev = existingNode;
+
+        if (existingNode == top) {
+            top = newNode;
+        }
+
+    }
+
+    bool isEmpty() //check if stack if empty
     {
         return top == NULL;
     }
-    char peek()  // return the top node from the stack
+
+    T peek()  // return the top node from the stack
     {
         if (!isEmpty())
         {
@@ -45,9 +110,39 @@ public:
             exit(1);
         }
     }
+
+    T getLastNodeData() 
+    {
+        // Check if the list is empty
+        if (top == NULL) {
+            // Return some default value to indicate an empty list
+            return -1; // Assuming -1 is not a valid data value
+        }
+
+        // Traverse to the last node in the list
+        while (top->next != NULL) {
+            top = top->next;
+        }
+
+        // Return the data of the last node
+        return top->data;
+    }
+
+    Node<T>* getTopNode()
+    {
+        if (!isEmpty())
+        {
+            return top;
+        }
+        else
+        {
+            exit(1);
+        }
+    }
+
     void pop() //delet a node from the top of the stack
     {
-        Node* temp;
+        Node<T>* temp;
         if (top == NULL)
         {
             cout << "There is no element on top";
@@ -57,39 +152,84 @@ public:
         {
             temp = top;
             top = top->next;
-            free(temp);
+            if (top != NULL)
+            {
+                top->prev = NULL;
+            }
+            delete temp;
         }
     }
-    void print()  //prints all the elemnets from the stack
-    {
-        Node* temp;
 
-        if (top == NULL)
-        {
-            cout << "There is no element on top";
+    void deleteLastNode()
+    {
+        if (top == nullptr) {
+            cerr << "Stack is empty, no nodes to delete!" << endl;
             return;
+        }
+
+        if (top->next == nullptr) {
+            delete top;
+            top = nullptr;
+            return;
+        }
+
+        Node<T>* current = top;
+        while (current->next != nullptr) {
+            current = current->next;
+        }
+
+        // At this point, current is pointing to the last node
+        current->prev->next = nullptr;
+        delete current;
+    }
+
+    void deleteNode(Node<T>* nodeToDelete) 
+    {
+        if (top == NULL || nodeToDelete == NULL)
+            return;
+
+        // If node to be deleted is head node
+        if (top == nodeToDelete)
+            top = nodeToDelete->next;
+
+        // Change next only if node to be deleted is NOT the last node
+        if (nodeToDelete->next != NULL)
+            nodeToDelete->next->prev = nodeToDelete->prev;
+
+        // Change prev only if node to be deleted is NOT the first node
+        if (nodeToDelete->prev != NULL)
+            nodeToDelete->prev->next = nodeToDelete->next;
+
+        // Finally, delete the node
+        delete nodeToDelete;
+    }
+
+
+
+
+    void print(Node<T>* node) //print in correct order from first in to last in 
+    {
+        if (node == NULL) {
+            return;
+        }
+        if (node->data == '+' || node->data == '-' || node->data == '*' || node->data == '/' || node->data == 'N' || node->data == 'F')
+        {
+            cout << node->data << ' ';
         }
         else
         {
-            temp = top;
-            while (temp != NULL)
-            {
-                if (temp->data == ' ') {
-                    cout << " ";
-                }
-                else {
-                    cout << temp->data;
-                }
-                /*temp = temp->next;
-                cout << temp->data;
-                temp = temp->next;
-                if (temp != NULL)
-                {
-                    cout << " ";
-                }*/
-
-            }
+            cout << node->data;
         }
+        print(node->next);
+    }
+
+    void printForward()
+    {
+        if (top == NULL) 
+        {
+            return;
+        }
+        print(top);
     }
 
     void reverse()
@@ -101,18 +241,49 @@ public:
 
     }
 
-    void printReverse(Node* node) 
+    void printReverse(Node<T>* node) //print in reverse order from first in to last in 
     {
         if (node == NULL) {
             return;
         }
         printReverse(node->next);
-        cout << node->data<< " ";
+        if (node->data == '+' || node->data == '-' || node->data == '*' || node->data == '/')
+        {
+            cout << node->data << ' ';
+        }
+        else
+        {
+            cout << node->data;
+        }
     }
 
-    void takeAllElementsFromStack(Stack* outputStack)
+
+    void printWithSpaces(Node<T>* node) //print in correct order from first in to last in 
     {
-        Node* temp;
+        if (node == NULL) {
+            return;
+        }
+
+        cout << node->data << ' ';
+        
+        printWithSpaces(node->next);
+    }
+
+    void printNumbers()
+    {
+        if (top == NULL)
+        {
+            return;
+        }
+        printWithSpaces(top);
+    }
+    
+
+    
+
+    void takeAllElementsFromStack(Stack<T>* outputStack) 
+    {
+        Node<T>* temp;
 
         if (top == NULL)
         {
