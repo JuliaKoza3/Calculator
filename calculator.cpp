@@ -115,10 +115,10 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
             temp.pop();
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
-            temp.reverse();
-            cout << endl;
-            output.printForward();
-            cout << endl;
+            //temp.reverse();
+            //cout << endl;
+            //output.printForward();
+            //cout << endl;
         }
         else if (temp.oneBeforePeek() == 'N')
         {
@@ -144,23 +144,6 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
         
 
     }
-    /*if (temp.peek() == '(' && temp.oneBeforePeek() == 'F')
-    {
-        temp.pop();
-        output.addOnBottom('I');
-        output.addOnBottom(temp.peek());
-        temp.pop();
-        temp.push(')');
-        output.printForward();
-        cout << endl;
-    }
-    else if (temp.peek() == '(' && temp.oneBeforePeek() != 'F')
-    {
-        temp.pop();
-        temp.push(')');
-        output.printForward();
-        cout << endl;
-    }*/
     temp.pop();
 
 }
@@ -195,7 +178,7 @@ void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
         }
         else if (token == 'N')
         {
-            while (!temp.isEmpty() && (temp.peek() == 'N' || temp.peek() == 'F'))
+            while (!temp.isEmpty() && (temp.peek() == 'K' || temp.peek() == 'F'))
             {
                 if (temp.peek() == 'F')
                 {
@@ -304,6 +287,31 @@ void printSteps(char symbol, Stack<int>& numbers)
     cout << endl;
 }
 
+void ifFunction(Stack<int>& numbers, char symbol)
+{
+    cout << 'I';
+    printSteps(symbol, numbers);
+
+    int thirdNumber = numbers.peek();
+    numbers.pop();
+    int secondNumber = numbers.peek();
+    numbers.pop();
+    int firstNumber = numbers.peek();
+    numbers.pop();
+
+    int result = 0;
+
+    if (firstNumber > 0)
+    {
+        result = secondNumber;
+    }
+    else
+    {
+        result = thirdNumber;
+    }
+    numbers.push(result);
+}
+
 void negative(Stack<int>& numbers, char symbol)
 {
     printSteps(symbol, numbers);
@@ -398,6 +406,10 @@ bool calculations(char symbol, Stack<int>& numbers)
         break;
     case 'N':
         negative(numbers, 'N');
+        break;
+    case 'F' :
+        ifFunction(numbers, 'F');
+        break;
     }
     return true;
 }
