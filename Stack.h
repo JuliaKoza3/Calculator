@@ -111,6 +111,18 @@ public:
         }
     }
 
+    T oneBeforePeek()  // return the top node from the stack
+    {
+        if (!isEmpty() && top->next!=NULL)
+        {
+            return top->next->data;
+        }
+        else
+        {
+            return 'z';
+        }
+    }
+
     T getLastNodeData() 
     {
         // Check if the list is empty

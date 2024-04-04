@@ -11,7 +11,7 @@ using namespace std;
 // Function to check if a character is an operator
 bool checkIfOperator(char token)
 {
-    if (token == '+' || token == '-' || token == '*' || token == '/' || token == '(' || token == ')' || token == 'N' || token == 'F')
+    if (token == '+' || token == '-' || token == '*' || token == '/' || token == '(' || token == ')' || token == 'N' || token == 'F'|| token == ',')
     {
         return true;
     }
@@ -59,8 +59,11 @@ void addMultiplicationAndDivisionSign(char token, Stack<char>& output, Stack<cha
             output.addOnBottom(temp.peek());
             temp.pop();
         }
-        output.addOnBottom(temp.peek());
-        temp.pop();
+        else
+        {
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
     }
     temp.push(token);
 }
@@ -76,8 +79,11 @@ void addAdditionAndSubtractionSign(char token, Stack<char>& output, Stack<char>&
             output.addOnBottom(temp.peek());
             temp.pop();
         }
-        output.addOnBottom(temp.peek());
-        temp.pop();
+        else
+        {
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
     }
     temp.push(token);
 }
@@ -92,15 +98,69 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
             output.addOnBottom(temp.peek());
             temp.pop();
         }
-        output.addOnBottom(temp.peek());
-        temp.pop();
+        else
+        {
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
     }
     if (temp.peek() == '(')
     {
-        temp.pop(); // Pop '('
-        temp.push(')');
+        //temp.pop();
+        //temp.push(')');
+        if (temp.oneBeforePeek() == 'F' )
+        {
+            temp.pop();
+            temp.push(')');
+            temp.pop();
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.reverse();
+            cout << endl;
+            output.printForward();
+            cout << endl;
+        }
+        else if (temp.oneBeforePeek() == 'N')
+        {
+            temp.pop();
+            temp.push(')');
+            temp.pop();
+            output.addOnBottom(temp.peek());
+            temp.reverse();
+            cout << endl;
+            output.printForward();
+            cout << endl;
+        }
+        else
+        {
+            temp.pop();
+            temp.push(')');
+            temp.reverse();
+            cout << endl;
+            output.printForward();
+            cout << endl;
+
+        }
+        
 
     }
+    /*if (temp.peek() == '(' && temp.oneBeforePeek() == 'F')
+    {
+        temp.pop();
+        output.addOnBottom('I');
+        output.addOnBottom(temp.peek());
+        temp.pop();
+        temp.push(')');
+        output.printForward();
+        cout << endl;
+    }
+    else if (temp.peek() == '(' && temp.oneBeforePeek() != 'F')
+    {
+        temp.pop();
+        temp.push(')');
+        output.printForward();
+        cout << endl;
+    }*/
     temp.pop();
 
 }
@@ -108,23 +168,15 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
 
 void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
 {
-    if (temp.isEmpty() || token == '(' || token == 'N')
+    if (temp.isEmpty() || token == '(')
     {
         temp.push(token);
     }
     else
     {
-        /*if (token == 'N' || token == 'F')
+        if (token == 'F')
         {
-            while (!temp.isEmpty()) {
-                output.addOnBottom(temp.peek());
-                temp.pop();
-            }
-            temp.push(token);
-        }*/
-        if (token == 'N')
-        {
-            while (!temp.isEmpty() && temp.peek() == 'F')
+            while (!temp.isEmpty() && (temp.peek() == 'F'))
             {
                 if (temp.peek() == 'F')
                 {
@@ -132,8 +184,31 @@ void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
                     output.addOnBottom(temp.peek());
                     temp.pop();
                 }
-                output.addOnBottom(temp.peek());
-                temp.pop();
+                else
+                {
+                    output.addOnBottom(temp.peek());
+                    temp.pop();
+                }
+                
+            }
+            temp.push(token);
+        }
+        else if (token == 'N')
+        {
+            while (!temp.isEmpty() && (temp.peek() == 'N' || temp.peek() == 'F'))
+            {
+                if (temp.peek() == 'F')
+                {
+                    output.addOnBottom('I');
+                    output.addOnBottom(temp.peek());
+                    temp.pop();
+                }
+                else
+                {
+                    output.addOnBottom(temp.peek());
+                    temp.pop();
+
+                }
             }
             temp.push(token);
         }
@@ -157,23 +232,65 @@ void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
 void convertingToRPN(Stack<char>& output, Stack<char>& operators, Stack<int>& numbers, Stack<char>& temp)
 {
     char token;
+    bool insideOperand = false;
     while (cin.get(token) && token != '.')
     {
         if (checkIfDigit(token))
         {
             addNumbersToStack(token, output, numbers);
+            insideOperand = true;
         }
         else if (checkIfOperator(token))
         {
-            addOperationsToStack(token, output, temp);
+            if (token == ',') // Handle comma separately
+            {
+                if (!insideOperand) {
+                    // Ignore comma if it appears outside of an operand
+                    continue;
+                }
+                if (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == '+' || temp.peek() == '-' || temp.peek() == 'N'))
+                {
+                    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == '+' || temp.peek() == '-' || temp.peek() == 'N'))
+                    {
+                        output.addOnBottom(temp.peek());
+                        temp.pop();// Add space to separate operands
+                        cout << "kot";
+                    }
+                    //output.addOnBottom(temp.peek());
+                    //temp.pop();// Add space to separate operands
+                }
+                else
+                {
+                    //cout << "kot";
+                }
+                //output.addOnBottom(temp.peek());
+                //temp.pop();// Add space to separate operands
+            }
+            else
+            {
+                addOperationsToStack(token, output, temp);
+                //insideOperand = false; // Reset the flag when encountering an operator
+            }
+
+            //addOperationsToStack(token, output, temp);
+            //insideOperand = true;
         }
     }
 
     // Pop remaining operators from the operator stack and push onto the output stack
     while (!temp.isEmpty())
     {
-        output.addOnBottom(temp.peek());
-        temp.pop();
+       if (temp.peek() == 'F')
+       {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+       }
+       else
+       {
+           output.addOnBottom(temp.peek());
+           temp.pop();
+       }
     }
 
     output.printForward();
@@ -343,8 +460,15 @@ int main()
     {
         
         convertingToRPN(output, operators, numbers, temp);
-        lookForOperator(output, numbers);
-        //cout<<output.getLastNodeData();
+        //lookForOperator(output, numbers);
+        //temp.push('h');
+        //temp.push('j');
+        //temp.push('l');
+        //temp.printForward();
+        //cout << endl<< output.peek();
+        //cout << endl << output.oneBeforePeek();
+        //cout << endl << temp.peek();
+        //cout << endl << temp.oneBeforePeek();
         while (!output.isEmpty())
         {
             output.pop();
