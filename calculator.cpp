@@ -11,7 +11,7 @@ using namespace std;
 // Function to check if a character is an operator
 bool checkIfOperator(char token)
 {
-    if (token == '+' || token == '-' || token == '*' || token == '/' || token == '(' || token == ')' || token == 'N' || token == 'F'|| token == ',')
+    if (token == '+' || token == '-' || token == '*' || token == '/' || token == '(' || token == ')' || token == 'N' || token == 'F'|| token == ',' || token == 'X' || token == 'M' || token == '<')
     {
         return true;
     }
@@ -48,16 +48,101 @@ void addNumbersToStack(char token, Stack<char> &output, Stack<int> &numbers)
     output.addOnBottom(' '); // Push space after each number
 }
 
-
-void addMultiplicationAndDivisionSign(char token, Stack<char>& output, Stack<char>& temp)
+void addIfSign(char token, Stack<char>& output, Stack<char>& temp)
 {
-    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == 'N' || temp.peek() == 'F'))
+    while (!temp.isEmpty() && (temp.peek() == 'F' || temp.peek() == 'X' || temp.peek() == '<'))
     {
         if (temp.peek() == 'F')
         {
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
             temp.pop();
+        }
+        else if (temp.peek() == 'X')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == '<')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            temp.pop();
+
+        }
+        else
+        {
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+
+    }
+    temp.push(token);
+}
+
+void addNegativeSign(char token, Stack<char>& output, Stack<char>& temp)
+{
+    while (!temp.isEmpty() && (temp.peek() == 'F' || temp.peek() == 'X' || temp.peek() == '<'))
+    {
+        if (temp.peek() == 'F')
+        {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == 'X')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == '<')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            temp.pop();
+
+        }
+        else
+        {
+            output.addOnBottom(temp.peek());
+            temp.pop();
+
+        }
+    }
+    temp.push(token);
+
+}
+
+void addMultiplicationAndDivisionSign(char token, Stack<char>& output, Stack<char>& temp)
+{
+    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == 'N' || temp.peek() == 'F' || temp.peek() == 'X' || temp.peek() == '<'))
+    {
+        if (temp.peek() == 'F')
+        {
+            output.addOnBottom('I');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == 'X')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == '<')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            temp.pop();
+
         }
         else
         {
@@ -71,13 +156,28 @@ void addMultiplicationAndDivisionSign(char token, Stack<char>& output, Stack<cha
 
 void addAdditionAndSubtractionSign(char token, Stack<char>& output, Stack<char>& temp)
 {
-    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == '+' || temp.peek() == '-' || temp.peek() == 'N' || temp.peek() == 'F'))
+    while (!temp.isEmpty() && (temp.peek() == '*' || temp.peek() == '/' || temp.peek() == '+' || temp.peek() == '-' || temp.peek() == 'N' || temp.peek() == 'F' || temp.peek() == 'X' || temp.peek() == '<'))
     {
         if (temp.peek() == 'F')
         {
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
             temp.pop();
+        }
+        else if (temp.peek() == 'X')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == '<')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            temp.pop();
+
         }
         else
         {
@@ -90,13 +190,35 @@ void addAdditionAndSubtractionSign(char token, Stack<char>& output, Stack<char>&
 
 void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
 {
+    int comas = 0;
     while (!temp.isEmpty() && temp.peek() != '(')
     {
+        
         if (temp.peek() == 'F')
         {
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
             temp.pop();
+        }
+        else if (temp.peek() == ',')
+        {
+            comas++;
+            temp.pop();
+        }
+        else if (temp.peek() == 'X')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            temp.pop();
+        }
+        else if (temp.peek() == '<')
+        {
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            temp.pop();
+
         }
         else
         {
@@ -106,42 +228,38 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
     }
     if (temp.peek() == '(')
     {
-        //temp.pop();
-        //temp.push(')');
         if (temp.oneBeforePeek() == 'F' )
         {
             temp.pop();
-            temp.push(')');
-            temp.pop();
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
-            //temp.reverse();
-            //cout << endl;
-            //output.printForward();
-            //cout << endl;
         }
         else if (temp.oneBeforePeek() == 'N')
         {
             temp.pop();
-            temp.push(')');
-            temp.pop();
             output.addOnBottom(temp.peek());
-            temp.reverse();
-            cout << endl;
-            output.printForward();
-            cout << endl;
         }
-        else
+        else if (temp.oneBeforePeek() == 'X')
         {
             temp.pop();
-            temp.push(')');
-            temp.reverse();
-            cout << endl;
-            output.printForward();
-            cout << endl;
+            output.addOnBottom('M');
+            output.addOnBottom('A');
+            output.addOnBottom(temp.peek());
+            char amountOfComas = (comas+1) + '0';
+            output.addOnBottom(amountOfComas);
+            output.addOnBottom(' ');
 
         }
-        
+        else if (temp.oneBeforePeek() == '<')
+        {
+            temp.pop();
+            output.addOnBottom('M');
+            output.addOnBottom('I');
+            output.addOnBottom('N');
+            char amountOfComas = (comas + 1) + '0';
+            output.addOnBottom(amountOfComas);
+            output.addOnBottom(' ');
+        }        
 
     }
     temp.pop();
@@ -149,63 +267,89 @@ void takeElementsFromParentheses(Stack<char>& output, Stack<char>& temp)
 }
 
 
-void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp)
+void addOperationsToStack(char token, Stack<char>& output, Stack<char>& temp, Stack<char>& operators)
 {
-    if (temp.isEmpty() || token == '(')
+    if ((temp.isEmpty() || token == '(') && token !='M')
     {
         temp.push(token);
+        operators.push(token);
     }
     else
     {
-        if (token == 'F')
+        if (token == 'X')
         {
-            while (!temp.isEmpty() && (temp.peek() == 'F'))
+            while (!temp.isEmpty() && temp.peek() == 'X')
             {
-                if (temp.peek() == 'F')
+                if (temp.peek() == 'X')
                 {
-                    output.addOnBottom('I');
-                    output.addOnBottom(temp.peek());
-                    temp.pop();
-                }
-                else
-                {
-                    output.addOnBottom(temp.peek());
-                    temp.pop();
-                }
-                
-            }
-            temp.push(token);
-        }
-        else if (token == 'N')
-        {
-            while (!temp.isEmpty() && (temp.peek() == 'K' || temp.peek() == 'F'))
-            {
-                if (temp.peek() == 'F')
-                {
-                    output.addOnBottom('I');
-                    output.addOnBottom(temp.peek());
-                    temp.pop();
-                }
-                else
-                {
+                    output.addOnBottom('M');
+                    output.addOnBottom('A');
                     output.addOnBottom(temp.peek());
                     temp.pop();
 
                 }
+                else
+                {
+                    output.addOnBottom(temp.peek());
+                    temp.pop();
+                }
+        
             }
             temp.push(token);
+            operators.push(token);
+        }
+        else if (token == 'M')
+        {
+            char nextChar;
+            if(cin.peek() == 'I')
+            {
+                cin.get(nextChar);
+                operators.push(nextChar);
+                while (!temp.isEmpty() && temp.peek() == '<')
+                {
+                    if (temp.peek() == '<')
+                    {
+                        output.addOnBottom('M');
+                        output.addOnBottom('I');
+                        output.addOnBottom('N');
+                        temp.pop();
+
+                    }
+                    else
+                    {
+                        output.addOnBottom(temp.peek());
+                        temp.pop();
+                    }
+
+                }
+                temp.push('<');
+                
+            }
+        }
+        else if (token == 'F')
+        {
+            addIfSign(token, output, temp);
+            operators.push(token);
+        }
+        else if (token == 'N' && operators.peek() != 'I')
+        {
+            addNegativeSign(token, output, temp);
+            operators.push(token);
         }
         else if (token == '*' || token == '/')
         {
-            addMultiplicationAndDivisionSign(token, output, temp);           
+            addMultiplicationAndDivisionSign(token, output, temp);  
+            operators.push(token);
         }
         else if (token == '+' || token == '-')
         {
             addAdditionAndSubtractionSign(token, output, temp);
+            operators.push(token);
         }
         else if (token == ')')
         {
             takeElementsFromParentheses(output, temp);
+            operators.push(token);
         }
     }
 
@@ -237,22 +381,13 @@ void convertingToRPN(Stack<char>& output, Stack<char>& operators, Stack<int>& nu
                     {
                         output.addOnBottom(temp.peek());
                         temp.pop();// Add space to separate operands
-                        cout << "kot";
                     }
-                    //output.addOnBottom(temp.peek());
-                    //temp.pop();// Add space to separate operands
                 }
-                else
-                {
-                    //cout << "kot";
-                }
-                //output.addOnBottom(temp.peek());
-                //temp.pop();// Add space to separate operands
+                temp.push(token);
             }
             else
             {
-                addOperationsToStack(token, output, temp);
-                //insideOperand = false; // Reset the flag when encountering an operator
+                addOperationsToStack(token, output, temp, operators);
             }
 
             //addOperationsToStack(token, output, temp);
@@ -268,6 +403,14 @@ void convertingToRPN(Stack<char>& output, Stack<char>& operators, Stack<int>& nu
             output.addOnBottom('I');
             output.addOnBottom(temp.peek());
             temp.pop();
+       }
+       else if (temp.peek() == '<')
+       {
+           output.addOnBottom('M');
+           output.addOnBottom('I');
+           output.addOnBottom('N');
+           temp.pop();
+
        }
        else
        {
@@ -472,15 +615,7 @@ int main()
     {
         
         convertingToRPN(output, operators, numbers, temp);
-        //lookForOperator(output, numbers);
-        //temp.push('h');
-        //temp.push('j');
-        //temp.push('l');
-        //temp.printForward();
-        //cout << endl<< output.peek();
-        //cout << endl << output.oneBeforePeek();
-        //cout << endl << temp.peek();
-        //cout << endl << temp.oneBeforePeek();
+        lookForOperator(output, numbers);
         while (!output.isEmpty())
         {
             output.pop();

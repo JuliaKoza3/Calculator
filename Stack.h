@@ -224,7 +224,15 @@ public:
         if (node == NULL) {
             return;
         }
-        if (node->data == '+' || node->data == '-' || node->data == '*' || node->data == '/' || node->data == 'N' || node->data == 'F')
+        if (node->data == '+' || node->data == '-' || node->data == '*' || node->data == '/' || node->data == 'F' || node->data == '<')
+        {
+            cout << node->data << ' ';
+        }
+        else if (node->data == 'N' && node->prev->data == 'I')
+        {
+            cout << node->data;
+        }
+        else if (node->data == 'N')
         {
             cout << node->data << ' ';
         }
